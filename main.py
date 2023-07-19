@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 from psgtray import SystemTray
+import winshell as ws
 
 
 def main_window():
@@ -27,22 +28,28 @@ def main_window():
         if event == tray.key:
             event = values[event]
 
-        if event == sg.WIN_CLOSED or event == 'Exit':
+        if event == 'Exit':
             break
 
         if event in ('Show Window', sg.EVENT_SYSTEM_TRAY_ICON_DOUBLE_CLICKED):
             window.un_hide()
             window.bring_to_front()
+
         elif event in ('Hide Window', sg.WIN_CLOSE_ATTEMPTED_EVENT):
             window.hide()
             tray.show_message('BinCleaner', 'BinCleaner minimized to tray!')
             tray.show_icon()
 
         if event == 'Apply':
-            print(values['-M-'])
+            try:
+                ws.recycle_bin().empty(confirm=True, show_progress=False)
+
+            except:
+                print('Recycle bin is already empty')
 
     tray.close()
     window.close()
+
 
 if __name__ == "__main__":
     release = '1.0.0'
