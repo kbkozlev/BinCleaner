@@ -58,6 +58,13 @@ def main_window():
             conf.on_boot = values['-ONBOOT-']
             conf.save_config_file()
 
+            if conf.on_boot:
+                startup_app.add_to_startup()
+                """If you are running this app from sourcecode uncomment the line below and comment the one above"""
+                # startup_app.run_script_at_startup_set(__file__)
+            else:
+                startup_app.remove_from_startup()
+
     tray.close()
     window.close()
 
@@ -83,13 +90,5 @@ if __name__ == "__main__":
     conf.save_config_file()
 
     startup_app = RunAtStartup(window_title, user=True)
-
-    if conf.on_boot:
-        startup_app.add_to_startup()
-        """If you are running this app from sourcecode uncomment the line below and comment the one above"""
-        # startup_app.run_script_at_startup_set(__file__)
-
-    else:
-        startup_app.remove_from_startup()
 
     main_window()
