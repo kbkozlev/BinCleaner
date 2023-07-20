@@ -1,6 +1,16 @@
 import PySimpleGUI as sg
 from psgtray import SystemTray
+from configurator import Configurator
+from startup import RunAtStartup
 import winshell as ws
+
+
+def clean():
+    try:
+        ws.recycle_bin().empty(confirm=True, show_progress=False)
+
+    except Exception as e:
+        print('Recycle bin is already empty')
 
 
 def main_window():
@@ -8,13 +18,12 @@ def main_window():
     app_menu = [['Help', ['About', 'Check for Updates']]]
 
     layout = [[sg.Menubar(app_menu)],
-              [sg.T('Delete Frequency:'), sg.T('M:'),
-               sg.DropDown(months, default_value='0', key='-M-'), sg.T('D:'),
-               sg.DropDown(days, default_value='0', key='-D-'), sg.T('H:'),
-               sg.DropDown(hours, default_value='0', key='-H-'), sg.T('M:'),
-               sg.DropDown(minutes, default_value='0', key='-M-')],
+              [sg.T('Delete Frequency:'), sg.T('D:'),
+               sg.DropDown(DAYS, default_value=str(conf.days), key='-D-'), sg.T('H:'),
+               sg.DropDown(HOURS, default_value=str(conf.hours), key='-H-'), sg.T('M:'),
+               sg.DropDown(MINUTES, default_value=str(conf.minutes), key='-M-')],
               [sg.HSeparator()],
-              [sg.Checkbox('Start on boot', key='-ONBOOT-')],
+              [sg.Checkbox('Start on boot', key='-ONBOOT-', default=conf.on_boot)],
               [sg.Button('Apply'), sg.Button('Exit')]
               ]
 
@@ -25,11 +34,12 @@ def main_window():
     while True:
         event, values = window.read()
 
-        if event == tray.key:
-            event = values[event]
-
         if event == 'Exit':
             break
+
+        # Event selections for Tray
+        if event == tray.key:
+            event = values[event]
 
         if event in ('Show Window', sg.EVENT_SYSTEM_TRAY_ICON_DOUBLE_CLICKED):
             window.un_hide()
@@ -40,12 +50,13 @@ def main_window():
             tray.show_message('BinCleaner', 'BinCleaner minimized to tray!')
             tray.show_icon()
 
+        # Event selections for Buttons
         if event == 'Apply':
-            try:
-                ws.recycle_bin().empty(confirm=True, show_progress=False)
-
-            except:
-                print('Recycle bin is already empty')
+            conf.days = values['-D-']
+            conf.hours = values['-H-']
+            conf.minutes = values['-M-']
+            conf.on_boot = values['-ONBOOT-']
+            conf.save_config_file()
 
     tray.close()
     window.close()
@@ -63,9 +74,22 @@ if __name__ == "__main__":
     sg.set_options(font=(font_family, font_size), force_modal_windows=True, dpi_awareness=True,
                    auto_size_buttons=True, auto_size_text=True)
 
-    months = list(range(0, 13))
-    days = list(range(0, 31))
-    hours = list(range(0, 24))
-    minutes = list(range(0, 60))
+    DAYS = list(range(0, 31))
+    HOURS = list(range(0, 24))
+    MINUTES = list(range(0, 60))
+
+    conf = Configurator()
+    conf.read_config_file()
+    conf.save_config_file()
+
+    startup_app = RunAtStartup(window_title, user=True)
+
+    if conf.on_boot:
+        startup_app.add_to_startup()
+        """If you are running this app from sourcecode uncomment the line below and comment the one above"""
+        # startup_app.run_script_at_startup_set(__file__)
+
+    else:
+        startup_app.remove_from_startup()
 
     main_window()
