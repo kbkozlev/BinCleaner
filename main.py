@@ -1,7 +1,6 @@
 import datetime
 import PySimpleGUI as sg
 from psgtray import SystemTray
-import configurator as cf
 from configurator import Configurator
 from startup import RunAtStartup
 import winshell as ws
@@ -35,7 +34,7 @@ def main_window():
 
     while True:
 
-        value = cf.extract_key_value('latest_time')
+        value = conf.get_value('latest_time')
         print(value)
 
         event, values = window.read()
@@ -95,7 +94,7 @@ if __name__ == "__main__":
     conf.read_config_file()
     conf.save_config_file()
 
-    if not len(cf.extract_key_value('latest_time')) > 0:
+    if not len(conf.get_value('latest_time')) > 0:
         conf.latest_time = str(datetime.datetime.now())
     conf.save_config_file()
 
