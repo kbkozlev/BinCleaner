@@ -43,6 +43,10 @@ class RunAtStartup:
             RegSetValueEx(key, self.appname, 0, REG_SZ, self.path or GetModuleFileName(0))
         RegCloseKey(key)
 
+    def add_script_to_startup(self, script_path):
+        self.path = '{} "{}"'.format(GetModuleFileName(0), script_path)
+        self.add_to_startup()
+
     def remove_from_startup(self):
         key = self._open_registry_key()
         try:
@@ -52,7 +56,3 @@ class RunAtStartup:
             print(e)
         finally:
             RegCloseKey(key)
-
-    def run_script_at_startup_set(self, script_path):
-        self.path = '{} "{}"'.format(GetModuleFileName(0), script_path)
-        self.add_to_startup()

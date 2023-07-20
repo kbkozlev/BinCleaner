@@ -61,7 +61,7 @@ def main_window():
             if conf.on_boot:
                 startup_app.add_to_startup()
                 """If you are running this app from sourcecode uncomment the line below and comment the one above"""
-                # startup_app.run_script_at_startup_set(__file__)
+                # startup_app.add_script_to_startup(__file__)
             else:
                 startup_app.remove_from_startup()
 
