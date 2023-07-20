@@ -1,6 +1,17 @@
 import json
 
 
+def extract_key_value(key):
+    """Extracts a specific key-value pair from a JSON data"""
+    try:
+        with open("config.json") as conf_file:
+            data = json.loads(conf_file.read())
+            value = data.get(key)
+            return value
+    except:
+        pass
+
+
 class Configurator:
 
     def __init__(self):
@@ -9,6 +20,7 @@ class Configurator:
         self.hours: int = 0
         self.minutes: int = 0
         self.on_boot: bool = False
+        self.latest_time: str = ''
 
     def read_config_file(self, config_file_name: str = "config.json"):
         try:

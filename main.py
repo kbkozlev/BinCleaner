@@ -1,5 +1,7 @@
+import datetime
 import PySimpleGUI as sg
 from psgtray import SystemTray
+import configurator as cf
 from configurator import Configurator
 from startup import RunAtStartup
 import winshell as ws
@@ -32,6 +34,10 @@ def main_window():
     tray = SystemTray(tray_menu, single_click_events=False, window=window, tooltip='BinCleaner', icon=icon)
 
     while True:
+
+        value = cf.extract_key_value('latest_time')
+        print(value)
+
         event, values = window.read()
 
         if event == 'Exit':
@@ -59,9 +65,9 @@ def main_window():
             conf.save_config_file()
 
             if conf.on_boot:
-                startup_app.add_to_startup()
+                # startup_app.add_to_startup()
                 """If you are running this app from sourcecode uncomment the line below and comment the one above"""
-                # startup_app.add_script_to_startup(__file__)
+                startup_app.add_script_to_startup(__file__)
             else:
                 startup_app.remove_from_startup()
 
@@ -89,6 +95,10 @@ if __name__ == "__main__":
     conf.read_config_file()
     conf.save_config_file()
 
-    startup_app = RunAtStartup(window_title, user=True)
+    if not len(cf.extract_key_value('latest_time')) > 0:
+        conf.latest_time = str(datetime.datetime.now())
+    conf.save_config_file()
+
+    startup_app = RunAtStartup('BinCleaner', user=True)
 
     main_window()

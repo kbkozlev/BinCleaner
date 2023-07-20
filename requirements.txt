@@ -1,0 +1,4 @@
+PySimpleGUI~=4.60.5
+winshell~=0.6
+psgtray~=1.0.2
+pywin32~=306
