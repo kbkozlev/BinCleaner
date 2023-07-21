@@ -28,9 +28,9 @@ def main_window():
               [sg.Button('Apply'), sg.Button('Exit')]
               ]
 
-    window = sg.Window(window_title, layout, icon=icon, font=(font_family, font_size), finalize=True,
+    window = sg.Window(WINDOW_TITLE, layout, icon=ICON, font=(FONT_FAMILY, FONT_SIZE), finalize=True,
                        enable_close_attempted_event=True)
-    tray = SystemTray(tray_menu, single_click_events=False, window=window, tooltip='BinCleaner', icon=icon)
+    tray = SystemTray(tray_menu, single_click_events=False, window=window, tooltip='BinCleaner', icon=ICON)
 
     while True:
 
@@ -75,15 +75,15 @@ def main_window():
 
 
 if __name__ == "__main__":
-    release = '1.0.0'
-    window_title = f"BinCleaner v{release}"
-    font_family = "Arial"
-    font_size = 10
-    bt_color = "#015FB8"
-    icon = "BinCleaner.ico"
+    RELEASE = '1.0.0'
+    WINDOW_TITLE = f"BinCleaner v{RELEASE}"
+    FONT_FAMILY = "Arial"
+    FONT_SIZE = 10
+    BT_COLOR = "#015FB8"
+    ICON = "BinCleaner.ico"
 
     sg.theme("Reddit")
-    sg.set_options(font=(font_family, font_size), force_modal_windows=True, dpi_awareness=True,
+    sg.set_options(font=(FONT_FAMILY, FONT_SIZE), force_modal_windows=True, dpi_awareness=True,
                    auto_size_buttons=True, auto_size_text=True)
 
     DAYS = list(range(0, 31))
@@ -91,12 +91,11 @@ if __name__ == "__main__":
     MINUTES = list(range(0, 60))
 
     conf = Configurator()
-    conf.read_config_file()
-    conf.save_config_file()
+    conf.create_on_start()
 
-    if not len(conf.get_value('latest_time')) > 0:
-        conf.latest_time = str(datetime.datetime.now())
-    conf.save_config_file()
+    if len(conf.get_value('latest_time')) == 0:
+        conf.latest_time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        conf.save_config_file()
 
     startup_app = RunAtStartup('BinCleaner', user=True)
 

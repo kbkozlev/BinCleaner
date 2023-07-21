@@ -1,5 +1,6 @@
 import json
 
+
 class Configurator:
     def __init__(self):
         # Hard coded values if config file doesn't exist
@@ -29,3 +30,7 @@ class Configurator:
     def get_value(self, key):
         """Extracts a specific key-value pair from the class attributes"""
         return getattr(self, key, None)
+
+    def create_on_start(self):
+        self.read_config_file()
+        self.save_config_file()

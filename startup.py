@@ -13,6 +13,7 @@ class RunAtStartup:
         self.appname = appname
         self.path = path
         self.user = user
+        self.latest_time = ''
 
     def _open_registry_key(self):
         return RegOpenKeyEx(
