@@ -9,6 +9,7 @@ class Configurator:
         self.minutes: int = 0
         self.on_boot: bool = False
         self.latest_time: str = ''
+        self.initial: bool = True
 
     def read_config_file(self, config_file_name: str = "config.json"):
         try:
