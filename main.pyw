@@ -4,14 +4,32 @@ from psgtray import SystemTray
 from configurator import Configurator
 from startup import RunAtStartup
 import winshell as ws
+import time_calculator as tc
+import threading
 
 
-def clean():
+def background_process():
+    while True:
+        days = conf.get_value('days')
+        hours = conf.get_value('hours')
+        minutes = conf.get_value('minutes')
+        old_time = conf.get_value('latest_time')
+
+        if old_time <= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'):
+            clean(old_time, days, hours, minutes)
+
+
+def clean(old_time, days, hours, minutes):
     try:
-        ws.recycle_bin().empty(confirm=True, show_progress=False)
+        ws.recycle_bin().empty(confirm=False, show_progress=False)
 
     except Exception as e:
         print('Recycle bin is already empty')
+
+    finally:
+        new_time = tc.time_difference(old_time, days, hours, minutes)
+        conf.latest_time = new_time.strftime('%Y-%m-%d %H:%M:%S')
+        conf.save_config_file()
 
 
 def main_window():
@@ -33,10 +51,6 @@ def main_window():
     tray = SystemTray(tray_menu, single_click_events=False, window=window, tooltip='BinCleaner', icon=ICON)
 
     while True:
-
-        value = conf.get_value('latest_time')
-        print(value)
-
         event, values = window.read()
 
         if event == 'Exit':
@@ -93,10 +107,13 @@ if __name__ == "__main__":
     conf = Configurator()
     conf.create_on_start()
 
-    if len(conf.get_value('latest_time')) == 0:
-        conf.latest_time = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        conf.save_config_file()
+    conf.latest_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conf.save_config_file()
 
     startup_app = RunAtStartup('BinCleaner', user=True)
 
-    main_window()
+    main = threading.Thread(target=main_window(), args=(1,))
+    bgp = threading.Thread(target=background_process(), args=(1,))
+    main.start()
+    bgp.start()
+
