@@ -1,9 +1,14 @@
 import pywintypes
+import logging
 from win32api import (GetModuleFileName, RegCloseKey, RegDeleteValue,
                       RegOpenKeyEx, RegSetValueEx, RegEnumValue)
 from win32con import (HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER, KEY_WRITE,
                       KEY_QUERY_VALUE, REG_SZ)
 from winerror import ERROR_NO_MORE_ITEMS
+
+
+logging.basicConfig(filename='log.log', encoding='utf-8', level=logging.INFO,
+                    format='%(asctime)s %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p')
 
 
 class RunAtStartup:
@@ -54,6 +59,6 @@ class RunAtStartup:
             if self._entry_exists(key):
                 RegDeleteValue(key, self.appname)
         except Exception as e:
-            print(e)
+            logging.error(e)
         finally:
             RegCloseKey(key)

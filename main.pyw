@@ -10,52 +10,42 @@ import threading as th
 from psgtray import SystemTray
 from configurator import Configurator
 from startup import RunAtStartup
+import logging
+
+logging.basicConfig(filename='log.log', encoding='utf-8', level=logging.INFO,
+                    format='%(asctime)s %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p')
 
 
-def background_process(conf, initial):
+def background_process(conf):
     while True:
+        time.sleep(60)
         days = conf.get_value('days')
         hours = conf.get_value('hours')
         minutes = conf.get_value('minutes')
         old_time = conf.get_value('latest_time')
+        initial_start = conf.get_value('initial_start')
 
-        if old_time <= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'):
-            if not initial:
-                clean(conf, old_time, days, hours, minutes)
+        if initial_start:
+            new_time = fn.time_difference(old_time, days, hours, minutes)
+            conf.latest_time = new_time.strftime('%Y-%m-%d %H:%M:%S')
+            conf.initial_start = False
+            conf.save_config_file()
+
+        elif old_time <= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'):
+            clean(conf, old_time, days, hours, minutes)
 
 
 def clean(conf, old_time, days, hours, minutes):
-    if conf.get_value('on_start'):
+    try:
+        ws.recycle_bin().empty(confirm=False, show_progress=False)
+
+    except Exception:
+        logging.info('Recycle Bin already empty!')
+
+    finally:
         new_time = fn.time_difference(old_time, days, hours, minutes)
         conf.latest_time = new_time.strftime('%Y-%m-%d %H:%M:%S')
-        conf.on_start = False
         conf.save_config_file()
-
-    else:
-        try:
-            ws.recycle_bin().empty(confirm=False, show_progress=False)
-
-        except Exception as e:
-            print('Recycle bin is already empty')
-
-        finally:
-            new_time = fn.time_difference(old_time, days, hours, minutes)
-            conf.latest_time = new_time.strftime('%Y-%m-%d %H:%M:%S')
-            conf.save_config_file()
-
-
-def re_start_window():
-    layout = [[sg.Push(), sg.T('The application will now exit'), sg.Push()],
-              [sg.Push(), sg.T('Re-start is needed for the changes to apply!'), sg.Push()],
-              [sg.Push(), sg.Button('OK'), sg.Push()]]
-
-    window = sg.Window('Apply changes', layout, icon=ICON, keep_on_top=True)
-    while True:
-        event, values = window.read()
-
-        if event in ('OK', sg.WINDOW_CLOSED):
-            window.close()
-            break
 
 
 def about_window():
@@ -163,16 +153,11 @@ def main_window():
 
         # Event selections for Buttons
         if event == 'Apply':
-            if not conf.get_value('initial'):
-                bgp.terminate()
             conf.days = values['-D-']
             conf.hours = values['-H-']
             conf.minutes = values['-M-']
             conf.on_boot = values['-ONBOOT-']
-            conf.initial = False
             conf.save_config_file()
-            re_start_window()
-            break
 
         if event == 'About':
             about_window()
@@ -182,9 +167,9 @@ def main_window():
 
         # Check for on-boot
         if conf.on_boot:
-            # startup_app.add_to_startup()
+            startup_app.add_to_startup()
             """If you are running this app from sourcecode uncomment the line below and comment the one above"""
-            startup_app.add_script_to_startup(__file__)
+            # startup_app.add_script_to_startup(__file__)
         else:
             startup_app.remove_from_startup()
 
@@ -216,15 +201,14 @@ if __name__ == "__main__":
     conf.create_on_start()
 
     conf.latest_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    conf.on_start = True
     conf.save_config_file()
-    initial = conf.get_value('initial')
 
     startup_app = RunAtStartup('BinCleaner', user=True)
 
     main = th.Thread(target=main_window)
-    bgp = mp.Process(target=background_process, args=(conf, initial))
+    bgp = mp.Process(target=background_process, args=(conf, ))
     bgp.daemon = True
-    if not initial:
+    if conf.get_value('days') != 0 or conf.get_value('hours') != 0 or conf.get_value('minutes') != 0:
+        conf.initial_start = True
         bgp.start()
     main.start()
