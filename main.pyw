@@ -25,16 +25,37 @@ def background_process(conf, initial):
 
 
 def clean(conf, old_time, days, hours, minutes):
-    try:
-        ws.recycle_bin().empty(confirm=False, show_progress=False)
-
-    except Exception as e:
-        print('Recycle bin is already empty')
-
-    finally:
+    if conf.get_value('on_start'):
         new_time = fn.time_difference(old_time, days, hours, minutes)
         conf.latest_time = new_time.strftime('%Y-%m-%d %H:%M:%S')
+        conf.on_start = False
         conf.save_config_file()
+
+    else:
+        try:
+            ws.recycle_bin().empty(confirm=False, show_progress=False)
+
+        except Exception as e:
+            print('Recycle bin is already empty')
+
+        finally:
+            new_time = fn.time_difference(old_time, days, hours, minutes)
+            conf.latest_time = new_time.strftime('%Y-%m-%d %H:%M:%S')
+            conf.save_config_file()
+
+
+def re_start_window():
+    layout = [[sg.Push(), sg.T('The application will now exit'), sg.Push()],
+              [sg.Push(), sg.T('Re-start is needed for the changes to apply!'), sg.Push()],
+              [sg.Push(), sg.Button('OK'), sg.Push()]]
+
+    window = sg.Window('Apply changes', layout, icon=ICON, keep_on_top=True)
+    while True:
+        event, values = window.read()
+
+        if event in ('OK', sg.WINDOW_CLOSED):
+            window.close()
+            break
 
 
 def about_window():
@@ -119,6 +140,7 @@ def main_window():
     window = sg.Window(WINDOW_TITLE, layout, icon=ICON, finalize=True,
                        enable_close_attempted_event=True)
     tray = SystemTray(tray_menu, single_click_events=False, window=window, tooltip='BinCleaner', icon=ICON)
+    tray.show_message('BinCleaner', 'BinCleaner running!', )
 
     while True:
         event, values = window.read()
@@ -134,32 +156,37 @@ def main_window():
             window.un_hide()
             window.bring_to_front()
 
-        elif event in ('Hide Window', sg.WIN_CLOSE_ATTEMPTED_EVENT):
+        if event in ('Hide Window', sg.WIN_CLOSE_ATTEMPTED_EVENT):
             window.hide()
             tray.show_message('BinCleaner', 'BinCleaner minimized to tray!')
             tray.show_icon()
 
         # Event selections for Buttons
         if event == 'Apply':
+            if not conf.get_value('initial'):
+                bgp.terminate()
             conf.days = values['-D-']
             conf.hours = values['-H-']
             conf.minutes = values['-M-']
             conf.on_boot = values['-ONBOOT-']
             conf.initial = False
             conf.save_config_file()
-
-            if conf.on_boot:
-                # startup_app.add_to_startup()
-                """If you are running this app from sourcecode uncomment the line below and comment the one above"""
-                startup_app.add_script_to_startup(__file__)
-            else:
-                startup_app.remove_from_startup()
+            re_start_window()
+            break
 
         if event == 'About':
             about_window()
 
         if event == 'Check for Updates':
             updates_window(RELEASE)
+
+        # Check for on-boot
+        if conf.on_boot:
+            # startup_app.add_to_startup()
+            """If you are running this app from sourcecode uncomment the line below and comment the one above"""
+            startup_app.add_script_to_startup(__file__)
+        else:
+            startup_app.remove_from_startup()
 
     tray.close()
     window.close()
@@ -189,6 +216,7 @@ if __name__ == "__main__":
     conf.create_on_start()
 
     conf.latest_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conf.on_start = True
     conf.save_config_file()
     initial = conf.get_value('initial')
 
