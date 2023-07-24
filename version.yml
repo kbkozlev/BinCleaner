@@ -1,0 +1,12 @@
+Version: 1.0.0
+CompanyName: Kaloian Kozlev
+FileDescription: Auto-empty the recycle bin based on a pre-defined cycle.
+InternalName: BinCleaner
+LegalCopyright: © 2023 Kaloian Kozlev
+OriginalFilename: BinCleaner.exe
+ProductName: BinCleaner
+Translation:
+  - langID: 0
+    charsetID: 1200
+  - langID: 1033
+    charsetID: 1252

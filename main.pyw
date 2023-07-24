@@ -118,13 +118,13 @@ def main_window():
     app_menu = [['Help', ['About', 'Check for Updates']]]
 
     layout = [[sg.Menubar(app_menu)],
-              [sg.T('Delete Frequency:'), sg.T('D:'),
-               sg.DropDown(DAYS, default_value=str(conf.days), key='-D-'), sg.T('H:'),
-               sg.DropDown(HOURS, default_value=str(conf.hours), key='-H-'), sg.T('M:'),
+              [sg.T('Delete Frequency:'), sg.T('D:', tooltip='Days'),
+               sg.DropDown(DAYS, default_value=str(conf.days), key='-D-'), sg.T('H:', tooltip='Hours'),
+               sg.DropDown(HOURS, default_value=str(conf.hours), key='-H-'), sg.T('M:', tooltip='Minutes'),
                sg.DropDown(MINUTES, default_value=str(conf.minutes), key='-M-')],
               [sg.HSeparator()],
               [sg.Checkbox('Start on boot', key='-ONBOOT-', default=conf.on_boot)],
-              [sg.Button('Apply'), sg.Button('Exit')]
+              [sg.Button('Apply'), sg.Button('Exit'), sg.T(justification="c", key="-INFO-")]
               ]
 
     window = sg.Window(WINDOW_TITLE, layout, icon=ICON, finalize=True,
@@ -158,6 +158,7 @@ def main_window():
             conf.minutes = values['-M-']
             conf.on_boot = values['-ONBOOT-']
             conf.save_config_file()
+            window['-INFO-'].update("Settings applied", text_color='green')
 
         if event == 'About':
             about_window()
@@ -172,6 +173,10 @@ def main_window():
             # startup_app.add_script_to_startup(__file__)
         else:
             startup_app.remove_from_startup()
+
+        window.refresh()
+        time.sleep(1)
+        window["-INFO-"].update(" ")
 
     tray.close()
     window.close()
