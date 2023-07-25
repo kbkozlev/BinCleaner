@@ -157,8 +157,14 @@ def main_window():
             conf.hours = values['-H-']
             conf.minutes = values['-M-']
             conf.on_boot = values['-ONBOOT-']
-            conf.save_config_file()
-            window['-INFO-'].update("Settings applied", text_color='green')
+            try:
+                conf.save_config_file()
+                window['-INFO-'].update("Settings applied", text_color='green')
+                logging.info(f"Settings updated: {values['-D-']} Days, {values['-H-']} Hours, {values['-M-']} Minutes, "
+                             f"On-Boot: {values['-ONBOOT-']}")
+            except Exception as e:
+                logging.error(f'Failed to save settings! {e}')
+                window['-INFO-'].update('Failed to save settings!', text_color='red')
 
         if event == 'About':
             about_window()
@@ -215,5 +221,14 @@ if __name__ == "__main__":
     bgp.daemon = True
     if conf.get_value('days') != 0 or conf.get_value('hours') != 0 or conf.get_value('minutes') != 0:
         conf.initial_start = True
-        bgp.start()
-    main.start()
+        try:
+            bgp.start()
+            logging.info('Background process started.')
+        except Exception as e:
+            logging.error(f"Background process failed to start! {e}")
+
+    try:
+        main.start()
+        logging.info('Main process started.')
+    except Exception as e:
+        logging.error(f"Main process failed to start! {e}")
