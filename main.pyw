@@ -188,7 +188,7 @@ if __name__ == "__main__":
     FONT_FAMILY = "Arial"
     FONT_SIZE = 10
     BT_COLOR = "#015FB8"
-    ICON = "BinCleaner.ico"
+    ICON = "media/BinCleaner.ico"
 
     theme = sg.theme("Reddit")
     sg.set_options(font=(FONT_FAMILY, FONT_SIZE), force_modal_windows=True, dpi_awareness=True,
