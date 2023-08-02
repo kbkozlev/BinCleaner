@@ -50,7 +50,7 @@ def clean(conf, old_time, days, hours, minutes):
 
 def about_window():
     layout = [[sg.Push(), sg.T(str(WINDOW_TITLE), font=(FONT_FAMILY, 12, "bold")), sg.Push()],
-              [sg.T(s=40)],
+              [sg.T()],
               [sg.Push(), sg.T(github_url['name'], enable_events=True, font=(FONT_FAMILY, FONT_SIZE, "underline"),
                                justification='l', text_color='#0066CC',
                                auto_size_text=True, key='download'), sg.Push()],
@@ -58,7 +58,7 @@ def about_window():
               [sg.T()],
               [sg.Push(), sg.T("Copyright © 2023 Kaloian Kozlev", text_color='light grey'), sg.Push()]]
 
-    window = sg.Window("About", layout, icon=ICON)
+    window = sg.Window("About", layout, icon=ICON, size=(480, 220))
 
     while True:
         event, values = window.read()
@@ -79,10 +79,10 @@ def updates_window(current_release):
               [sg.T()],
               [sg.T('Current Version:', s=13), sg.T(f'{current_release}', font=(FONT_FAMILY, 10, 'bold'))],
               [sg.T(f'Latest Version:', s=13), sg.T(f'{latest_release}', font=(FONT_FAMILY, 10, 'bold'))],
-              [sg.T(s=40, justification="c", key="-INFO-")],
+              [sg.Push(), sg.T(justification="c", key="-INFO-"), sg.Push()],
               [sg.Push(), sg.B('Download', key='download', button_color=BT_COLOR, s=16), sg.Push()]]
 
-    window = sg.Window("Check for Updates", layout, icon=ICON)
+    window = sg.Window("Check for Updates", layout, icon=ICON, size=(480, 220))
 
     while True:
         event, values = window.read()
@@ -124,8 +124,7 @@ def main_window():
                sg.DropDown(MINUTES, default_value=str(conf.minutes), key='-M-')],
               [sg.HSeparator()],
               [sg.Checkbox('Start on boot', key='-ONBOOT-', default=conf.on_boot)],
-              [sg.Button('Apply'), sg.Button('Exit'), sg.T(justification="c", key="-INFO-")]
-              ]
+              [sg.Button('Apply', size=8), sg.Button('Exit', size=8), sg.T(justification="c", key="-INFO-")]]
 
     window = sg.Window(WINDOW_TITLE, layout, icon=ICON, finalize=True,
                        enable_close_attempted_event=True)
